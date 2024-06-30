@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Customer;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 
 class CustomerController extends Controller
 {
@@ -35,7 +36,23 @@ class CustomerController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $this->validate($request, [
+            'email' => 'required|email',
+            'password' => 'required|string',
+            'name' => 'required|string'
+        ]);
+
+        $customer = new Customer();
+        $customer->name=$request->name;
+        $customer->email=$request->email;
+        $customer->readable_password = $request->password;
+        $customer->password = Hash::make($request->password);
+        $customer->save();
+
+       $token = $customer->createToken('Customer Token')->accessToken;
+
+        return response()->json(['token' => $token,'message' => 'Customer Added Successfully'], 200);
+
     }
 
     /**
@@ -81,5 +98,24 @@ class CustomerController extends Controller
     public function destroy(Customer $customer)
     {
         //
+    }
+
+    public function customerLogin(Request $request){
+        $this->validate($request, [
+            'email' => 'required|email',
+            'password' => 'required|string',
+        ]);
+
+        $customer = Customer::where('email', $request->email)->first();
+
+        if ($customer && Hash::check($request->password, $customer->password)) {
+            // Authentication succeeded
+            $token = $customer->createToken('Customer Token')->accessToken;
+            return response()->json(['token' => $token,'message' => 'Login Successfully']);
+
+        }
+
+        // Authentication failed
+        return response()->json(['success' => false, 'error' => 'Email or Password is wrong']);
     }
 }

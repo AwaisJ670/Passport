@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\DialogflowController;
 
 /*
 |--------------------------------------------------------------------------
@@ -13,6 +14,8 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::get('/', function() {
+    return view('welcome'); // Return the chat view
+})->name('merit.chat');
+
+Route::post('/detect-intent', [DialogflowController::class, 'detectIntent'])->name('detect.intent');;
